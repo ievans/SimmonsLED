@@ -1,0 +1,57 @@
+<html>
+<head>
+<title>Simmons LED Display</title>
+</head>
+<body>
+<div><input id="message" type="text" /><input type="button" value="set message" onclick="setMessage();"></div>
+<div id="hits"></div>
+<div id="content" style="width: 600px; height: 600px;"></div>
+
+<script type="text/javascript">
+var timeout = 500;
+var counter = 0;
+
+function render(text) {
+	document.getElementById('content').innerHTML = text;
+	document.getElementById('hits').innerHTML = counter;
+	counter++;
+}
+
+function setMessage() {
+	var stream = "phone=1111111111&text="
+	stream += document.getElementById('message').value
+	ajaxPost('/queue', stream, render);
+}
+
+function poll() {
+	ajaxGet('/display?&move=1&arduino=1', render);
+	//ajaxGet('/display', render);
+	setTimeout(poll, timeout);
+}
+
+function ajaxPost(url,stream,callback)
+{
+	ajaxRequest(url,stream,callback,'POST');
+}
+function ajaxGet(url,callback)
+{
+	ajaxRequest(url, '' ,callback, 'GET' );
+}
+
+function ajaxRequest(url,stream,callback,method)
+{
+if( ! method ) method = 'POST';
+var xmlhttp = new XMLHttpRequest();
+xmlhttp.open(method, url, true);
+xmlhttp.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+xmlhttp.onreadystatechange=function() {
+if(xmlhttp.readyState==4)
+{ callback(xmlhttp.responseText); }
+};
+xmlhttp.send(stream);
+}
+onload = setTimeout(poll, timeout);
+</script>
+
+</body>
+
