@@ -8,6 +8,7 @@
 import Matrix
 import Game
 import LEDCharacters
+from BoardIP import boardAddress
 import logging
 import datetime
 import os
@@ -23,7 +24,6 @@ from google.appengine.api.urlfetch import DownloadError
 #store:
 scrollDelay = 10
 matrixSize = (6, 6) #pixel width by height
-boardAddress = '18.96.2.200'
 matrix = None
 
 class QueueEntry(db.Model):
