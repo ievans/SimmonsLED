@@ -1,0 +1,17 @@
+Simmons Hall is a dormitory at the Massachusetts Institute of Technology which
+is home to 300 undergraduate students. It is notable for its unique
+architecture, which features 5,538 small, outward facing windows. The goal of
+this project was to turn a 6-by-6 set of those windows into an approximately
+20-by-20 foot LED-based display which could scroll messages and display
+patterns. The visibility of the display is optimal because Simmons sits alone
+across from “Dorm Row” where almost all of the other undergraduate dorms are
+located. The display is thus visible to well over a thousand undergraduates who
+live across from Simmons. The windows LED project had been executed before in
+2006, but most of the hardware was missing and the display had been used
+relatively sparsely due to the lack of accessibility through a web or voice
+interface.
+
+This repository contains the Python which runs on Google App Engine and interacts
+with the lower levels of the system, which are located in Simmons.
+
+- Isaac Evans
