@@ -28,7 +28,7 @@ matrix = None
 MEMCACHE_TIME = 300
 
 class QueueEntry(db.Model):
-    contentType = db.StringProperty(required = False)
+    contentType = db.StringProperty(required = True)
     text = db.StringProperty(required = True)
     phone = db.StringProperty(required = True)
     datetime = db.DateTimeProperty(required = True)
