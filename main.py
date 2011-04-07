@@ -11,7 +11,6 @@ import LEDCharacters
 from BoardIP import boardAddress
 import logging
 import datetime
-import os
 import pytz
 
 from google.appengine.api import urlfetch
@@ -26,7 +25,10 @@ scrollDelay = 10
 matrixSize = (6, 6) #pixel width by height
 matrix = None
 
+MEMCACHE_TIME = 300
+
 class QueueEntry(db.Model):
+    contentType = db.StringProperty(required = False)
     text = db.StringProperty(required = True)
     phone = db.StringProperty(required = True)
     datetime = db.DateTimeProperty(required = True)
@@ -88,25 +90,36 @@ class SerialDisplay(webapp.RequestHandler):
             if self.request.get('move'): #execute shift
                 if self.scroller.next() == None: #terminate
                     self.scroller = None
-                memcache.set('scroller', self.scroller, 300)
+                memcache.set('scroller', self.scroller, MEMCACHE_TIME)
 
         else: #mo matrix available
             if memcache.get('key') != None: #todo delete old one
                 db.delete(memcache.get('key'))
                 memcache.set('key', None)
             #what's next on the queue?
-            qe = QueueEntry.all().order('-datetime').fetch(1)
+            qe = QueueEntry.all().order('-datetime').get()
             #is it time to display it? do you hate DST?
-            if len(qe) == 1 and datetime.datetime(qe[0].datetime.year, qe[0].datetime.month,
-                                                  qe[0].datetime.day, qe[0].datetime.hour,
-                                                  qe[0].datetime.minute, qe[0].datetime.second, 0,
+            if qe != None and datetime.datetime(qe.datetime.year, qe.datetime.month,
+                                                  qe.datetime.day, qe.datetime.hour,
+                                                  qe.datetime.minute, qe.datetime.second, 0,
                                                   pytz.timezone('US/Eastern')) > getTimeEDTorEST():
-                self.scroller = Matrix.MatrixScrollRepeater(qe[0].repeat, Matrix.MatrixScroller(qe[0].text, matrixSize[0], matrixSize[1]))
-                self.scroller.next()
-                self.scroller.next()
-                memcache.set('scroller', self.scroller, 300)
-                memcache.set('phone', qe[0].phone)
-                memcache.set('key', qe[0].key())
+                
+                SM = None
+                if qe.contentType == 'text':
+                    SM = Matrix.MatrixScroller(qe.text, matrixSize[0], matrixSize[1])
+                    #self.scroller.next()
+                    #self.scroller.next()
+                elif qe.contentType == 'animation':
+                    if qe.text == 'SNAKE':
+                        game = Game.SnakeGame(matrixSize[0], matrixSize[1])
+                        player = Game.DumbSnakePlayer(1)
+                        SM = Game.GameBoard(game, player)
+                
+                if SM != None:
+                    self.scroller = Matrix.MatrixScrollRepeater(qe.repeat, SM)
+                    memcache.set('scroller', self.scroller, MEMCACHE_TIME)
+                    memcache.set('phone', qe.phone)
+                    memcache.set('key', qe.key())
             else:
                 self.response.out.write('0,'*matrixSize[0]*matrixSize[1])
 
@@ -125,6 +138,7 @@ class QueueManager(webapp.RequestHandler):
     def post(self):
         #example URL: http://simmonsled.appspot.com?phone=8124617764&date=03/30/2011&time=08:30 pm&text=a&text=b&text=c&text=done&
         texts = self.request.get_all('text')
+        contentType = self.request.get('type')
 
         logging.info('text: ' + str(texts))
         text = ''
@@ -149,13 +163,17 @@ class QueueManager(webapp.RequestHandler):
                      'phone: ' + phone + '\n' +
                      'slot: ' + slot.strftime("%Y-%m-%d %H:%M:%S"))
 
-        prev = QueueEntry.all().filter('datetime >', slot).order('-datetime').fetch(1) #datetime.datetime.now()
-        qe = QueueEntry(text = text,
+        #prev = QueueEntry.all().filter('datetime >', slot).order('-datetime').fetch(1) #datetime.datetime.now()
+        qe = QueueEntry(contentType = contentType,
+                        text = text,
                         phone = phone,
                         datetime = slot,
                         repeat = 1) #means, repeat x times - '1' will display the message twice
+        
         qe.put()
-        self.response.out.write('message queued!')
+        
+        #self.response.out.write(whitelist(contentType) + ' queued!')
+
 ##       self.response.out.write(qe.text + ' <br/>')
 ##       self.response.out.write(qe.phone + ' <br/>')
 ##       self.response.out.write(qe.datetime.strftime("%Y-%m-%d %H:%M:%S") + ' <br/>')

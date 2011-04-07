@@ -1,10 +1,19 @@
-from Matrix import *
+#!/usr/bin/env python
+
+# Arduino LED matrix control for the Simmons LED Gym Display
+# By Nathan V-C
+# ncvc@mit.edu
+# 4/7/2011
+
+from Matrix import MatrixSM
 import random
 
-class GameBoard:
+class GameBoard(MatrixSM):
     def __init__(self, game, player):
         self.game = game
         self.player = player
+        
+        self.str = game.str
 
         self.reset()
 
@@ -13,6 +22,9 @@ class GameBoard:
         self.player.reset()
         
         self.gameOver = False
+    
+    def resetMatrix(self):
+        self.game.resetMatrix()
 
     def next(self):
         if not self.gameOver:
@@ -28,6 +40,18 @@ class GameBoard:
         else:
             return self.game.gameOver()
             
+    def applyTransform(self, perm, position):
+        return self.game.applyTransform(perm, position)
+    
+    def toList(self):
+        return self.game.toList()
+
+    def matrixFromList(self, aList, width, height):
+        return self.game.matrixFromList(aList, width, height)
+
+    def getArduinoList(self):
+        return self.game.getArduinoList()
+            
     def getMatrix(self):
         return self.game.getMatrix()
 
@@ -36,23 +60,22 @@ class GameBoard:
 
     def getHeight(self):
         return self.game.getHeight()
+    
+    def getText(self):
+        return self.game.getText()
 
     def __str__(self):
         return str(self.game)
 
 
-class Game:
+class Game(MatrixSM):
     def __init__(self, width, height):
-        self.width = width
-        self.height = height
-
-        self.reset()
+        MatrixSM.__init__(self, width, height)
+        
+        self.str = 'Game'
 
     def reset(self):
         self.resetMatrix()
-
-    def resetMatrix(self):
-        self.matrix = [[0 for i in range(self.height)] for j in range(self.width)]
 
     def next(self):
         return None
@@ -60,25 +83,12 @@ class Game:
     def gameOver(self):
         return None
 
-    def getMatrix(self):
-        return self.matrix
-
-    def getWidth(self):
-        return self.width
-
-    def getHeight(self):
-        return self.height
-
-    def __str__(self):
-        strArray = []
-        for row in self.matrix:
-            strArray.append(str(row))
-        return '\n'.join(strArray)
-
 
 class SnakeGame(Game):
     def __init__(self, width, height):
         Game.__init__(self, width, height)
+        
+        self.str = 'Snake'
 
         self.gameOverScreens = 5
         
@@ -145,15 +155,15 @@ class SnakeGame(Game):
             self.matrix[x][y] = 1
 
     def dropFood(self):
-        x = random.randint(0, self.width - 1)
-        y = random.randint(0, self.height - 1)
+        x = random.randint(0, self.getWidth() - 1)
+        y = random.randint(0, self.getHeight() - 1)
         
         self.food = (x, y)
             
     def noneIfInvalid(self):
         for i in range(len(self.snake)):
             x, y = self.snake[i]
-            if x < 0 or x >= self.width or y < 0 or y >= self.height:
+            if x < 0 or x >= self.WIDTH or y < 0 or y >= self.HEIGHT:
                 return None
             
             for j in range(i + 1, len(self.snake)):
@@ -259,7 +269,7 @@ class DumbSnakePlayer(Player):
         else:
             return validMoves[random.randint(0, len(validMoves) - 1)]
 
-def test():
+def testSnakeGame():
     game = SnakeGame(6, 6)
     player = DumbSnakePlayer(1)
     board = GameBoard(game, player)

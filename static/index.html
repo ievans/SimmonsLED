@@ -4,6 +4,7 @@
 </head>
 <body>
 <div><input id="message" type="text" /><input type="button" value="set message" onclick="setMessage();"></div>
+<div><input type="button" value="Play Snake" onclick="playSnake();"></div>
 <div id="hits"></div>
 <div id="content" style="width: 600px; height: 600px;"></div>
 
@@ -18,8 +19,13 @@ function render(text) {
 }
 
 function setMessage() {
-	var stream = "phone=1111111111&text="
+	var stream = "phone=1111111111&type=text&text="
 	stream += document.getElementById('message').value
+	ajaxPost('/queue', stream, render);
+}
+
+function playSnake() {
+	var stream = "phone=1111111111&type=animation&text=snake"
 	ajaxPost('/queue', stream, render);
 }
 
@@ -40,15 +46,15 @@ function ajaxGet(url,callback)
 
 function ajaxRequest(url,stream,callback,method)
 {
-if( ! method ) method = 'POST';
-var xmlhttp = new XMLHttpRequest();
-xmlhttp.open(method, url, true);
-xmlhttp.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
-xmlhttp.onreadystatechange=function() {
-if(xmlhttp.readyState==4)
-{ callback(xmlhttp.responseText); }
-};
-xmlhttp.send(stream);
+	if( ! method ) method = 'POST';
+	var xmlhttp = new XMLHttpRequest();
+	xmlhttp.open(method, url, true);
+	xmlhttp.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+	xmlhttp.onreadystatechange=function() {
+		if(xmlhttp.readyState==4)
+		{ callback(xmlhttp.responseText); }
+		};
+	xmlhttp.send(stream);
 }
 onload = setTimeout(poll, timeout);
 </script>
