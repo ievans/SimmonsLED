@@ -4,12 +4,15 @@
 </head>
 <body>
 <div><input id="message" type="text" /><input type="button" value="set message" onclick="setMessage();"></div>
+<div><input type="button" value="Play Snake" onclick="playSnake();"><br/>
+<input type="button" value="toggle air" onclick="toggleAir();"></div>
 <div id="hits"></div>
 <div id="content" style="width: 600px; height: 600px;"></div>
 
 <script type="text/javascript">
 var timeout = 500;
 var counter = 0;
+var air = 1;
 
 function render(text) {
 	document.getElementById('content').innerHTML = text;
@@ -17,15 +20,27 @@ function render(text) {
 	counter++;
 }
 
+function toggleAir() { 
+	if (air == 1) { air = 0; alert('off air'); }
+	else { air = 1; alert('on air'); }
+}
+
 function setMessage() {
-	var stream = "phone=1111111111&text="
+	var stream = "phone=1111111111&type=text&text="
 	stream += document.getElementById('message').value
 	ajaxPost('/queue', stream, render);
 }
 
+function playSnake() {
+	var stream = "phone=1111111111&type=animation&text=snake"
+	ajaxPost('/queue', stream, render);
+}
+
 function poll() {
-	ajaxGet('/display?&move=1&arduino=1', render);
-	//ajaxGet('/display', render);
+	text = '/display';
+	if (air == 1) 
+		text += '?&move=1&arduino=1';
+	ajaxGet(text, render);
 	setTimeout(poll, timeout);
 }
 
@@ -40,15 +55,15 @@ function ajaxGet(url,callback)
 
 function ajaxRequest(url,stream,callback,method)
 {
-if( ! method ) method = 'POST';
-var xmlhttp = new XMLHttpRequest();
-xmlhttp.open(method, url, true);
-xmlhttp.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
-xmlhttp.onreadystatechange=function() {
-if(xmlhttp.readyState==4)
-{ callback(xmlhttp.responseText); }
-};
-xmlhttp.send(stream);
+	if( ! method ) method = 'POST';
+	var xmlhttp = new XMLHttpRequest();
+	xmlhttp.open(method, url, true);
+	xmlhttp.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+	xmlhttp.onreadystatechange=function() {
+		if(xmlhttp.readyState==4)
+		{ callback(xmlhttp.responseText); }
+		};
+	xmlhttp.send(stream);
 }
 onload = setTimeout(poll, timeout);
 </script>
