@@ -29,7 +29,6 @@ class GameBoard(MatrixSM):
     def next(self):
         if not self.gameOver:
             playerInp = self.player.next(self.game)
-            print playerInp
 
             gameOut = self.game.next(playerInp)
             if gameOut == None:
@@ -216,7 +215,6 @@ class SnakeGame(Game):
                 dy = 0
             else:
                 dx = 0
-        print dx, dy
             
         for move, coords in self.moves.items():
             if (dx, dy) == coords:
@@ -260,7 +258,6 @@ class DumbSnakePlayer(Player):
         foodX, foodY = game.getFood()
 
         dx, dy = foodX - headX, foodY - headY
-        print dx, dy
         
         goodMove = game.coordsToMove(dx, dy)
 
@@ -275,7 +272,5 @@ def testSnakeGame():
     board = GameBoard(game, player)
     done = False
     while done != None:
-        print board
-        print
         done = board.next()
         
