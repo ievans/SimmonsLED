@@ -4,6 +4,7 @@
 #include <SPI.h>
 #include <Ethernet.h>
 #define MATRIX_SIZE 36
+#define HELLO 4
 
 int matrix[MATRIX_SIZE] = { 1 };
 // Enter a MAC address and IP address for your controller below.
