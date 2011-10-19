@@ -15,3 +15,8 @@ This repository contains the Python which runs on Google App Engine and interact
 with the lower levels of the system, which are located in Simmons.
 
 - Isaac Evans
+
+Connections to the Arduino from the driver board are as follows:
+Light red  - GND
+Black      - TX
+Darker red - 5V
